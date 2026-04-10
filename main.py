@@ -3,6 +3,7 @@ import asyncio
 import requests
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, ContextTypes, CommandHandler
+from telegram.request import HTTPXRequest
 
 # === CONFIG ===
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
@@ -24,43 +25,37 @@ def ask_nilaation(user_message: str, user_id: str) -> str:
     try:
         response = requests.post(DIFY_API_URL, headers=headers, json=payload, timeout=30)
         data = response.json()
-        return data.get("answer", "Sorry, I couldn't get a response. Please try again.")
+        return data.get("answer") or data.get("text") or "Sorry, I couldn't get a response."
     except Exception as e:
-        return f"Nilaation is having trouble connecting. Please try again in a moment."
+        return f"Nilaation is having trouble connecting."
 
 # === HANDLE /start COMMAND ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "👋 Hello! I'm Nilaation, your AI study assistant!\n\n"
-        "I specialize in:\n"
-        "📚 Academic knowledge (science, math, history...)\n"
-        "🌏 Asian & Cambodian education\n"
-        "📖 Book summaries & research\n"
-        "✏️ Homework help & exam prep\n\n"
         "Ask me anything! I speak English and Khmer. 😊"
     )
 
 # === HANDLE ALL MESSAGES ===
-# === HANDLE ALL MESSAGES ===
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     user_id = update.message.from_user.id
-
-    # Show typing indicator
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
-
-    # Get response from Nilaation
-    answer = ask_nilaation(user_message, user_id) # This calls the Dify function
-    
-    # Send the answer back to the user
+    answer = ask_nilaation(user_message, user_id)
     await update.message.reply_text(answer)
 
 # === MAIN ===
 async def main():
-    app = Application.builder().token(TELEGRAM_TOKEN).build()
+    # This part stops the "TimedOut" crash you saw in your logs
+    request_config = HTTPXRequest(connect_timeout=60, read_timeout=60)
+    
+    app = Application.builder().token(TELEGRAM_TOKEN).request(request_config).build()
+    
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    
     print("Nilaation Telegram Bot is running...")
+    
     await app.initialize()
     await app.start()
     await app.updater.start_polling()
