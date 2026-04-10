@@ -15,12 +15,11 @@ def ask_nilaation(user_message: str, user_id: str) -> str:
         "Authorization": f"Bearer {DIFY_API_KEY}",
         "Content-Type": "application/json"
     }
-   payload = {
+    payload = {
         "inputs": {},
         "query": user_message,
         "response_mode": "blocking",
-        "user": str(user_id),
-        "conversation_id": None  # Using None instead of "" is safer for Agents
+        "user": str(user_id)
     }
     try:
         response = requests.post(DIFY_API_URL, headers=headers, json=payload, timeout=30)
