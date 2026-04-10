@@ -41,21 +41,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 # === HANDLE ALL MESSAGES ===
+# === HANDLE ALL MESSAGES ===
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     user_id = update.message.from_user.id
 
     # Show typing indicator
-    await context.bot.send_chat_action(
-        chat_id=update.effective_chat.id,
-        action="typing"
-    )
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
 
     # Get response from Nilaation
-    response = ask_nilaation(user_message, user_id)
-
-    # Send response back
-    await update.message.reply_text(response)
+    answer = ask_nilaation(user_message, user_id) # This calls the Dify function
+    
+    # Send the answer back to the user
+    await update.message.reply_text(answer)
 
 # === MAIN ===
 async def main():
