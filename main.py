@@ -1,4 +1,4 @@
-import os
+import asyncio
 import requests
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, ContextTypes, CommandHandler
@@ -58,12 +58,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response)
 
 # === MAIN ===
-def main():
+async def main():
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Nilaation Telegram Bot is running...")
     app.run_polling()
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    asyncio.run(main())
